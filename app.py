@@ -50,6 +50,9 @@ col4.metric("2022年最高收入", "2741.56 亿元 (昆明)")
 st.header("🏆 各州市旅游总收入排名")
 df_year = df[df["年份"] == selected_year].sort_values("旅游总收入(亿元)", ascending=True)
 
+# 绘图前强制重设字体，解决图表内部中文方框乱码
+plt.rcParams['font.sans-serif'] = ['WenQuanYi Micro Hei', 'SimHei', 'Microsoft YaHei']
+plt.rcParams['axes.unicode_minus'] = False
 fig, ax = plt.subplots(figsize=(10, 6))
 bars = ax.barh(df_year["州市"], df_year["旅游总收入(亿元)"], color="steelblue")
 ax.set_xlabel("旅游总收入（亿元）")
@@ -60,6 +63,9 @@ st.pyplot(fig)
 
 # ========== 主要州市旅游收入趋势 ==========
 st.header("📉 主要州市旅游收入趋势")
+# 绘图前强制重设字体
+plt.rcParams['font.sans-serif'] = ['WenQuanYi Micro Hei', 'SimHei', 'Microsoft YaHei']
+plt.rcParams['axes.unicode_minus'] = False
 fig, ax = plt.subplots(figsize=(10, 5))
 for city in selected_cities:
     city_data = df[df["州市"] == city]

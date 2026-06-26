@@ -1,19 +1,30 @@
 import streamlit as st
 import pandas as pd
-
-
 import folium
 from streamlit_folium import st_folium
 from folium.plugins import MarkerCluster
+# 第一步：只导入matplotlib核心，不调用plt
 import matplotlib
-# ---------------------- 修复中文乱码（兼容Windows+Linux） ----------------------
-plt.rcParams['font.sans-serif'] = ['WenQuanYi Zen Hei', 'SimHei', 'Microsoft YaHei']
-plt.rcParams['axes.unicode_minus'] = False
+from matplotlib.font_manager import FontProperties
+import os
+
+# 全局字体配置（只用matplotlib，不使用plt，规避NameError）
+matplotlib.rcParams['font.sans-serif'] = ['WenQuanYi Zen Hei', 'SimHei', 'Microsoft YaHei']
 matplotlib.rcParams['axes.unicode_minus'] = False
+
+# 第二步：配置完字体后，再导入plt
 import matplotlib.pyplot as plt
+
+# ---------------------- 云部署字体兜底（上传wqy-zenhei.ttc到GitHub仓库） ----------------------
+font_path = "./wqy-zenhei.ttc"
+if os.path.exists(font_path):
+    my_font = FontProperties(fname=font_path)
+else:
+    my_font = FontProperties(family="WenQuanYi Zen Hei")
+
 # 页面基础配置
 st.set_page_config(page_title="云南旅游数据分析", layout="wide")
-st.title("🏆 云南省各州市旅游数据分析")
+st.title("🏆 云南省各州市旅游数据分析", font_properties=my_font)
 st.caption("2015-2022年 · 16个州市旅游收入+A级景区空间可视化")
 
 # ---------------------- 缓存数据 + 异常容错 ----------------------
@@ -72,8 +83,10 @@ df_year = df[df["年份"] == selected_year].sort_values("旅游总收入(亿元)
 
 fig, ax = plt.subplots(figsize=(12, 7))
 bars = ax.barh(df_year["州市"], df_year["旅游总收入(亿元)"], color="steelblue")
-ax.set_xlabel("旅游总收入（亿元）", fontsize=12)
-ax.set_title(f"{selected_year}年云南省各州市旅游总收入排名", fontsize=14, pad=15)
+# 所有中文强制绑定字体，云上彻底消除方框
+ax.set_xlabel("旅游总收入（亿元）", fontsize=12, fontproperties=my_font)
+ax.set_title(f"{selected_year}年云南省各州市旅游总收入排名", fontsize=14, pad=15, fontproperties=my_font)
+ax.set_yticklabels(df_year["州市"], fontproperties=my_font)
 
 # 修复数值标签：动态留白，不会超出画布
 x_max = df_year["旅游总收入(亿元)"].max()
@@ -89,10 +102,10 @@ fig, ax = plt.subplots(figsize=(12, 6))
 for city in selected_cities:
     city_data = df[df["州市"] == city].sort_values("年份")
     ax.plot(city_data["年份"], city_data["旅游总收入(亿元)"], marker="o", linewidth=2.2, label=city)
-ax.set_xlabel("年份", fontsize=12)
-ax.set_ylabel("旅游总收入（亿元）", fontsize=12)
-ax.set_title("2015-2022年旅游总收入变化趋势", fontsize=14)
-ax.legend(loc="upper left")
+ax.set_xlabel("年份", fontsize=12, fontproperties=my_font)
+ax.set_ylabel("旅游总收入（亿元）", fontsize=12, fontproperties=my_font)
+ax.set_title("2015-2022年旅游总收入变化趋势", fontsize=14, fontproperties=my_font)
+ax.legend(loc="upper left", prop=my_font)
 ax.grid(alpha=0.3)
 st.pyplot(fig, use_container_width=True)
 

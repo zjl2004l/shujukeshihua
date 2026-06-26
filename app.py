@@ -9,7 +9,7 @@ from streamlit_folium import st_folium
 matplotlib.rcParams['font.sans-serif'] = ['WenQuanYi Micro Hei', 'SimHei', 'Microsoft YaHei']
 matplotlib.rcParams['axes.unicode_minus'] = False
 plt.rcParams['font.family'] = 'sans-serif'
-plt.rcParams['axes.unicode_labelsize'] = 10
+
 
 st.set_page_config(page_title="云南旅游数据分析", layout="wide")
 st.title("📊 云南省各州市旅游数据分析")

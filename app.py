@@ -5,22 +5,19 @@ import matplotlib
 import folium
 from streamlit_folium import st_folium
 
-# 全局字体配置（云端Linux优先文泉驿，本地Windows黑体）
-matplotlib.rcParams['font.sans-serif'] = ['WenQuanYi Micro Hei', 'SimHei', 'Microsoft YaHei']
-matplotlib.rcParams['axes.unicode_minus'] = False
-
+# 全局字体配置
+plt.rcParams['font.sans-serif'] = ['WenQuanYi Micro Hei', 'SimHei', 'Microsoft YaHei']
+plt.rcParams['axes.unicode_minus'] = False
 
 st.set_page_config(page_title="云南旅游数据分析", layout="wide")
 st.title("📊 云南省各州市旅游数据分析")
 st.caption("2015-2022年 · 16个州市 · 128条记录")
 
-# 缓存旅游收入数据
 @st.cache_data
 def load_data():
     df = pd.read_csv("旅游数据.csv")
     return df
 
-# 缓存景区坐标数据（给地图用）
 @st.cache_data
 def load_scenic_map_data():
     df_scenic = pd.read_excel("云南省A级景区名录_带坐标.xlsx")
@@ -37,7 +34,6 @@ st.sidebar.header("🔧 筛选条件")
 selected_year = st.sidebar.selectbox("选择年份", years)
 selected_cities = st.sidebar.multiselect("选择州市（趋势分析）", cities, default=["昆明", "大理", "丽江"])
 
-# ========== 数据概览 ==========
 st.header("📈 数据概览")
 col1, col2, col3, col4 = st.columns(4)
 col1.metric("总记录数", f"{len(df)} 条")
@@ -49,6 +45,10 @@ col4.metric("2022年最高收入", "2741.56 亿元 (昆明)")
 st.header("🏆 各州市旅游总收入排名")
 df_year = df[df["年份"] == selected_year].sort_values("旅游总收入(亿元)", ascending=True)
 
+# 绘图前强制设置字体
+plt.rcParams['font.sans-serif'] = ['WenQuanYi Micro Hei', 'SimHei', 'Microsoft YaHei']
+plt.rcParams['axes.unicode_minus'] = False
+
 fig, ax = plt.subplots(figsize=(10, 6))
 bars = ax.barh(df_year["州市"], df_year["旅游总收入(亿元)"], color="steelblue")
 ax.set_xlabel("旅游总收入（亿元）")
@@ -59,6 +59,11 @@ st.pyplot(fig)
 
 # ========== 主要州市旅游收入趋势 ==========
 st.header("📉 主要州市旅游收入趋势")
+
+# 绘图前强制设置字体
+plt.rcParams['font.sans-serif'] = ['WenQuanYi Micro Hei', 'SimHei', 'Microsoft YaHei']
+plt.rcParams['axes.unicode_minus'] = False
+
 fig, ax = plt.subplots(figsize=(10, 5))
 for city in selected_cities:
     city_data = df[df["州市"] == city]
@@ -78,7 +83,6 @@ level_colors = {'5A': 'red', '4A': 'orange', '3A': 'blue', '2A': 'green', '1A': 
 
 m = folium.Map(location=[24.5, 101.5], zoom_start=7)
 
-# 添加图例
 legend_html = '''
 <div style="position: fixed; bottom: 30px; right: 30px; z-index: 1000; background: white; 
             padding: 10px 14px; border: 2px solid #ccc; border-radius: 6px; font-size: 13px;">
@@ -92,7 +96,6 @@ legend_html = '''
 '''
 m.get_root().html.add_child(folium.Element(legend_html))
 
-# 批量添加标记
 for idx, row in df_map.iterrows():
     folium.Marker(
         location=[row["纬度"], row["经度"]],

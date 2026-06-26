@@ -3,28 +3,20 @@ import pandas as pd
 import folium
 from streamlit_folium import st_folium
 from folium.plugins import MarkerCluster
-# 先导入matplotlib核心模块，配置字体，再导入plt
 import matplotlib
 from matplotlib.font_manager import FontProperties
 import os
 
-# 全局字体配置，不使用plt，规避NameError
-matplotlib.rcParams['font.sans-serif'] = ['WenQuanYi Zen Hei', 'SimHei', 'Microsoft YaHei']
+# ====================== 云端内置Noto中文字体配置（核心修复） ======================
+matplotlib.rcParams['font.sans-serif'] = ["Noto Sans CJK SC"]
 matplotlib.rcParams['axes.unicode_minus'] = False
-
-# 配置完字体后再导入plt
+# 全局字体对象，所有图表统一调用
+my_font = FontProperties(family="Noto Sans CJK SC")
+# 配置完字体后再导入plt，杜绝NameError
 import matplotlib.pyplot as plt
 
-# 云环境字体加载逻辑
-font_path = "./wqy-zenhei.ttc"
-if os.path.exists(font_path):
-    my_font = FontProperties(fname=font_path)
-else:
-    my_font = FontProperties(family="WenQuanYi Zen Hei")
-
-# 页面基础配置（删除错误的font_properties参数）
+# 页面基础配置
 st.set_page_config(page_title="云南旅游数据分析", layout="wide")
-# 修复：st.title 不支持font_properties，直接移除该参数
 st.title("🏆 云南省各州市旅游数据分析")
 st.caption("2015-2022年 · 16个州市旅游收入+A级景区空间可视化")
 
@@ -33,6 +25,7 @@ st.caption("2015-2022年 · 16个州市旅游收入+A级景区空间可视化")
 def load_travel_data():
     try:
         df = pd.read_csv("旅游数据.csv", encoding="utf-8-sig")
+        # 清洗数值空行
         df = df.dropna(subset=["年份", "州市", "旅游总收入(亿元)"])
         df["旅游总收入(亿元)"] = pd.to_numeric(df["旅游总收入(亿元)"])
         return df
@@ -56,6 +49,7 @@ def load_scenic_data():
 df = load_travel_data()
 df_map = load_scenic_data()
 
+# 数据为空直接终止
 if df.empty:
     st.stop()
 
@@ -76,23 +70,28 @@ col3.metric("州市总数", f"{len(cities)} 个")
 max_2022 = df[df["年份"] == 2022]["旅游总收入(亿元)"].max()
 col4.metric("2022最高旅游收入", f"{max_2022:.2f} 亿元(昆明)")
 
-# ---------------------- 2. 各州市旅游收入横向条形图 ----------------------
+# ---------------------- 2. 各州市旅游收入横向条形图（修复刻度警告+字体） ----------------------
 st.header("🏆 各州市旅游总收入排名")
 df_year = df[df["年份"] == selected_year].sort_values("旅游总收入(亿元)", ascending=True)
 
 fig, ax = plt.subplots(figsize=(12, 7))
-bars = ax.barh(df_year["州市"], df_year["旅游总收入(亿元)"], color="steelblue")
-# 图表内文字正常绑定字体，这里没问题
-ax.set_xlabel("旅游总收入（亿元）", fontsize=12, fontproperties=my_font)
-ax.set_title(f"{selected_year}年云南省各州市旅游总收入排名", fontsize=14, pad=15, fontproperties=my_font)
+y_pos = list(range(len(df_year)))
+bars = ax.barh(y_pos, df_year["旅游总收入(亿元)"], color="steelblue")
+# 先固定刻度，再设置标签，消除set_ticklabels警告
+ax.set_yticks(y_pos)
 ax.set_yticklabels(df_year["州市"], fontproperties=my_font)
 
+ax.set_xlabel("旅游总收入（亿元）", fontsize=12, fontproperties=my_font)
+ax.set_title(f"{selected_year}年云南省各州市旅游总收入排名", fontsize=14, pad=15, fontproperties=my_font)
+
+# 修复数值标签：动态留白，不会超出画布
 x_max = df_year["旅游总收入(亿元)"].max()
 ax.set_xlim(0, x_max * 1.12)
 for bar, val in zip(bars, df_year["旅游总收入(亿元)"]):
     ax.text(val + x_max * 0.01, bar.get_y() + bar.get_height()/2, f"{val:.1f}", va="center", fontsize=10)
 
-st.pyplot(fig, use_container_width=True)
+# 替换废弃参数 use_container_width=True → width="stretch"
+st.pyplot(fig, width="stretch")
 
 # ---------------------- 3. 多州市收入趋势折线图 ----------------------
 st.header("📈 州市旅游收入年度变化趋势")
@@ -105,18 +104,21 @@ ax.set_ylabel("旅游总收入（亿元）", fontsize=12, fontproperties=my_font
 ax.set_title("2015-2022年旅游总收入变化趋势", fontsize=14, fontproperties=my_font)
 ax.legend(loc="upper left", prop=my_font)
 ax.grid(alpha=0.3)
-st.pyplot(fig, use_container_width=True)
+st.pyplot(fig, width="stretch")
 
-# ---------------------- 4. A级景区空间地图 ----------------------
+# ---------------------- 4. A级景区空间地图（MarkerCluster优化加载速度） ----------------------
 st.header("🗺️ 云南省A级景区空间分布地图")
 if df_map.empty:
     st.warning("景区坐标文件读取失败，无法展示地图")
 else:
     st.caption(f"有效景区数量：{len(df_map)} 个（1A-5A全覆盖）")
     level_colors = {'5A': 'red', '4A': 'orange', '3A': 'blue', '2A': 'green', '1A': 'purple'}
+    # 云南中心坐标
     m = folium.Map(location=[24.5, 101.5], zoom_start=7)
+    # 聚合标记，解决大量景区卡顿
     marker_cluster = MarkerCluster().add_to(m)
 
+    # 图例悬浮框
     legend_html = '''
     <div style="position: fixed; bottom: 30px; right: 30px; z-index: 1000; background: white; 
                 padding: 10px 14px; border: 2px solid #ccc; border-radius: 6px; font-size: 13px;">
@@ -130,6 +132,7 @@ else:
     '''
     m.get_root().html.add_child(folium.Element(legend_html))
 
+    # 批量添加聚合标记，提升渲染速度
     for _, row in df_map.iterrows():
         icon_color = level_colors.get(row["等级"], "gray")
         popup_text = f"<b>{row['景区名称']}</b><br>等级：{row['等级']}<br>所属州市：{row['所在州市']}"
@@ -144,9 +147,13 @@ else:
 # ---------------------- 5. 原始数据查询与导出 ----------------------
 st.header("📋 原始数据查询 & 导出")
 year_choose = st.selectbox("筛选年份", ["全部年份"] + years)
-data_show = df.copy() if year_choose == "全部年份" else df[df["年份"] == year_choose]
+if year_choose == "全部年份":
+    data_show = df.copy()
+else:
+    data_show = df[df["年份"] == year_choose]
 
 st.dataframe(data_show.reset_index(drop=True), use_container_width=True)
+# 下载CSV（中文不乱码）
 csv_data = data_show.to_csv(index=False, encoding="utf-8-sig").encode("utf-8-sig")
 st.download_button(
     label="📥 导出筛选后数据为CSV文件",

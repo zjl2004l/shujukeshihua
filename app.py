@@ -1,16 +1,16 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
-import matplotlib
+
+
 import folium
 from streamlit_folium import st_folium
 from folium.plugins import MarkerCluster
-
+import matplotlib
 # ---------------------- 修复中文乱码（兼容Windows+Linux） ----------------------
 plt.rcParams['font.sans-serif'] = ['WenQuanYi Zen Hei', 'SimHei', 'Microsoft YaHei']
 plt.rcParams['axes.unicode_minus'] = False
 matplotlib.rcParams['axes.unicode_minus'] = False
-
+import matplotlib.pyplot as plt
 # 页面基础配置
 st.set_page_config(page_title="云南旅游数据分析", layout="wide")
 st.title("🏆 云南省各州市旅游数据分析")

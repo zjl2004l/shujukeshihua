@@ -5,10 +5,11 @@ import matplotlib
 import folium
 from streamlit_folium import st_folium
 
-# 完整兼容云端+本地的字体配置
+# 双环境字体兼容（云端Linux优先文泉驿，本地Windows黑体）
 matplotlib.rcParams['font.sans-serif'] = ['WenQuanYi Micro Hei', 'SimHei', 'Microsoft YaHei']
 matplotlib.rcParams['axes.unicode_minus'] = False
 plt.rcParams['font.family'] = 'sans-serif'
+plt.rcParams['axes.unicode_labelsize'] = 10
 
 st.set_page_config(page_title="云南旅游数据分析", layout="wide")
 st.title("📊 云南省各州市旅游数据分析")

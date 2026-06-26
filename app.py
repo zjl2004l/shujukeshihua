@@ -8,7 +8,6 @@ from streamlit_folium import st_folium
 # 全局字体配置（云端Linux优先文泉驿，本地Windows黑体）
 matplotlib.rcParams['font.sans-serif'] = ['WenQuanYi Micro Hei', 'SimHei', 'Microsoft YaHei']
 matplotlib.rcParams['axes.unicode_minus'] = False
-plt.rc('font', family='sans-serif')
 
 
 st.set_page_config(page_title="云南旅游数据分析", layout="wide")
@@ -50,38 +49,24 @@ col4.metric("2022年最高收入", "2741.56 亿元 (昆明)")
 st.header("🏆 各州市旅游总收入排名")
 df_year = df[df["年份"] == selected_year].sort_values("旅游总收入(亿元)", ascending=True)
 
-# 绘图强制字体
 fig, ax = plt.subplots(figsize=(10, 6))
-plt.rcParams['font.sans-serif'] = ['WenQuanYi Micro Hei']
-plt.rcParams['axes.unicode_minus'] = False
-
 bars = ax.barh(df_year["州市"], df_year["旅游总收入(亿元)"], color="steelblue")
-ax.set_xlabel("旅游总收入（亿元）", fontfamily='sans-serif')
-ax.set_title(f"{selected_year}年云南省各州市旅游总收入排名", fontfamily='sans-serif')
-# 坐标轴刻度字体
-plt.setp(ax.get_xticklabels(), fontfamily='sans-serif')
-plt.setp(ax.get_yticklabels(), fontfamily='sans-serif')
-
+ax.set_xlabel("旅游总收入（亿元）")
+ax.set_title(f"{selected_year}年云南省各州市旅游总收入排名")
 for bar, val in zip(bars, df_year["旅游总收入(亿元)"]):
-    ax.text(val + 10, bar.get_y() + bar.get_height()/2, f"{val:.1f}", va="center", fontsize=8, fontfamily='sans-serif')
+    ax.text(val + 10, bar.get_y() + bar.get_height()/2, f"{val:.1f}", va="center", fontsize=8)
 st.pyplot(fig)
 
 # ========== 主要州市旅游收入趋势 ==========
 st.header("📉 主要州市旅游收入趋势")
 fig, ax = plt.subplots(figsize=(10, 5))
-plt.rcParams['font.sans-serif'] = ['WenQuanYi Micro Hei']
-plt.rcParams['axes.unicode_minus'] = False
-
 for city in selected_cities:
     city_data = df[df["州市"] == city]
     ax.plot(city_data["年份"], city_data["旅游总收入(亿元)"], marker="o", label=city, linewidth=2)
-
-ax.set_xlabel("年份", fontfamily='sans-serif')
-ax.set_ylabel("旅游总收入（亿元）", fontfamily='sans-serif')
-ax.set_title("2015-2022年旅游总收入趋势", fontfamily='sans-serif')
-plt.setp(ax.get_xticklabels(), fontfamily='sans-serif')
-plt.setp(ax.get_yticklabels(), fontfamily='sans-serif')
-ax.legend(prop={'family':'sans-serif'})
+ax.set_xlabel("年份")
+ax.set_ylabel("旅游总收入（亿元）")
+ax.set_title("2015-2022年旅游总收入趋势")
+ax.legend()
 ax.grid(alpha=0.3)
 st.pyplot(fig)
 

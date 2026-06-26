@@ -5,7 +5,7 @@ import matplotlib
 import folium
 from streamlit_folium import st_folium
 
-matplotlib.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei']
+matplotlib.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'WenQuanYi Micro Hei']
 matplotlib.rcParams['axes.unicode_minus'] = False
 
 st.set_page_config(page_title="云南旅游数据分析", layout="wide")

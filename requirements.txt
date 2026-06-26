@@ -1,0 +1,10 @@
+streamlit
+pandas
+matplotlib
+numpy
+openpyxl
+folium
+streamlit-folium
+requests
+pdfplumber
+tabula

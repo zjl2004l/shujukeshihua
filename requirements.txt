@@ -8,3 +8,4 @@ streamlit-folium
 requests
 pdfplumber
 tabula
+fonts-wqy-microhei
